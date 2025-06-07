@@ -28,9 +28,9 @@ function setupMotion() {
     document.getElementById('status').textContent = 'Reading accelerometer...';
 }
 
-if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-    // iOS 13+
-    document.body.addEventListener('click', () => {
+function initMotionAccess() {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        // iOS 13+
         DeviceMotionEvent.requestPermission().then(response => {
             if (response === 'granted') {
                 setupMotion();
@@ -40,12 +40,17 @@ if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.request
         }).catch(err => {
             document.getElementById('status').textContent = 'Permission error: ' + err;
         });
-    }, { once: true });
-    document.getElementById('status').textContent = 'Tap anywhere to allow motion access.';
-} else {
-    // Other browsers
-    setupMotion();
+    } else if (typeof DeviceMotionEvent !== 'undefined') {
+        // Other browsers that support DeviceMotion without explicit permission
+        setupMotion();
+    } else {
+        document.getElementById('status').textContent = 'DeviceMotion not supported.';
+    }
 }
+
+document.body.addEventListener('touchstart', initMotionAccess, { once: true });
+document.body.addEventListener('click', initMotionAccess, { once: true });
+document.getElementById('status').textContent = 'Tap anywhere to allow motion access.';
 </script>
 </body>
 </html>
