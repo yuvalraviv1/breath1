@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breath Monitor Prototype</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 40px; }
+#values { margin-top: 20px; font-size: 1.2em; }
+</style>
+</head>
+<body>
+<h1>Breath Monitor Prototype</h1>
+<p id="status">Awaiting permission for motion sensors...</p>
+<div id="values">
+X: <span id="x">0</span><br>
+Y: <span id="y">0</span><br>
+Z: <span id="z">0</span>
+</div>
+<script>
+function setupMotion() {
+    window.addEventListener('devicemotion', event => {
+        const { x, y, z } = event.accelerationIncludingGravity || {};
+        document.getElementById('x').textContent = x && x.toFixed ? x.toFixed(2) : '0';
+        document.getElementById('y').textContent = y && y.toFixed ? y.toFixed(2) : '0';
+        document.getElementById('z').textContent = z && z.toFixed ? z.toFixed(2) : '0';
+    });
+    document.getElementById('status').textContent = 'Reading accelerometer...';
+}
+
+if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+    // iOS 13+
+    document.body.addEventListener('click', () => {
+        DeviceMotionEvent.requestPermission().then(response => {
+            if (response === 'granted') {
+                setupMotion();
+            } else {
+                document.getElementById('status').textContent = 'Permission denied.';
+            }
+        }).catch(err => {
+            document.getElementById('status').textContent = 'Permission error: ' + err;
+        });
+    }, { once: true });
+    document.getElementById('status').textContent = 'Tap anywhere to allow motion access.';
+} else {
+    // Other browsers
+    setupMotion();
+}
+</script>
+</body>
+</html>
+
