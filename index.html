@@ -70,7 +70,6 @@ let lastSampleTime = 0;
 let axisMapping = { xAxis: 'x', yAxis: 'z', colorAxis: 'y' };
 let avgAccum = { x: 0, y: 0, z: 0, count: 0, startTime: Date.now() };
 let lastAveragePoint = null;
-const currentOrientation = { alpha: 0, beta: 0, gamma: 0 };
 
 const axisSelect = document.getElementById('axis-select');
 const scaleSelect = document.getElementById('scale-factor');
@@ -145,16 +144,6 @@ function axisValueToColor(val) {
     return `hsl(${hue}, 100%, 50%)`;
 }
 
-function orientationToGravity(ori) {
-    const rad = Math.PI / 180;
-    const beta = (ori.beta || 0) * rad;
-    const gamma = (ori.gamma || 0) * rad;
-    const x = Math.sin(gamma) * 9.81;
-    const y = -Math.sin(beta) * 9.81;
-    const z = -Math.cos(beta) * Math.cos(gamma) * 9.81;
-    return { x, y, z };
-}
-
 function drawTrail() {
     if (!debugCtx) return;
     const w = debugCanvas.width;
@@ -198,31 +187,22 @@ function drawTrail() {
 
 function setupMotion() {
     initDebugCanvas();
-    window.addEventListener('deviceorientation', event => {
-        currentOrientation.alpha = event.alpha || 0;
-        currentOrientation.beta = event.beta || 0;
-        currentOrientation.gamma = event.gamma || 0;
-    });
     window.addEventListener('devicemotion', event => {
         const { x = 0, y = 0, z = 0 } = event.accelerationIncludingGravity || {};
-        const gravity = orientationToGravity(currentOrientation);
-        const adjX = x - gravity.x;
-        const adjY = y - gravity.y;
-        const adjZ = z - gravity.z;
-        document.getElementById('x').textContent = adjX && adjX.toFixed ? adjX.toFixed(2) : '0';
-        document.getElementById('y').textContent = adjY && adjY.toFixed ? adjY.toFixed(2) : '0';
-        document.getElementById('z').textContent = adjZ && adjZ.toFixed ? adjZ.toFixed(2) : '0';
+        document.getElementById('x').textContent = x && x.toFixed ? x.toFixed(2) : '0';
+        document.getElementById('y').textContent = y && y.toFixed ? y.toFixed(2) : '0';
+        document.getElementById('z').textContent = z && z.toFixed ? z.toFixed(2) : '0';
 
         const now = Date.now();
         if (now - lastSampleTime >= SAMPLE_INTERVAL) {
             lastSampleTime = now;
-            samples.unshift({ x: adjX, y: adjY, z: adjZ });
+            samples.unshift({ x, y, z });
             if (samples.length > HISTORY_LENGTH) {
                 samples.pop();
             }
-            avgAccum.x += adjX;
-            avgAccum.y += adjY;
-            avgAccum.z += adjZ;
+            avgAccum.x += x;
+            avgAccum.y += y;
+            avgAccum.z += z;
             avgAccum.count++;
             if (now - avgAccum.startTime >= AVERAGE_INTERVAL * 1000) {
                 if (avgAccum.count > 0) {
@@ -244,33 +224,23 @@ function setupMotion() {
     document.getElementById('status').textContent = 'Reading accelerometer...';
 }
 
-async function initMotionAccess() {
-    if (typeof DeviceMotionEvent === 'undefined') {
-        document.getElementById('status').textContent = 'DeviceMotion not supported.';
-        return;
-    }
-    let motionAllowed = true;
-    let orientationAllowed = true;
+function initMotionAccess() {
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        try {
-            motionAllowed = (await DeviceMotionEvent.requestPermission()) === 'granted';
-        } catch (err) {
-            motionAllowed = false;
-        }
-    }
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        try {
-            orientationAllowed = (await DeviceOrientationEvent.requestPermission()) === 'granted';
-        } catch (err) {
-            orientationAllowed = false;
-        }
-    }
-    if (motionAllowed && orientationAllowed) {
+        // iOS 13+
+        DeviceMotionEvent.requestPermission().then(response => {
+            if (response === 'granted') {
+                setupMotion();
+            } else {
+                document.getElementById('status').textContent = 'Permission denied.';
+            }
+        }).catch(err => {
+            document.getElementById('status').textContent = 'Permission error: ' + err;
+        });
+    } else if (typeof DeviceMotionEvent !== 'undefined') {
+        // Other browsers that support DeviceMotion without explicit permission
         setupMotion();
-    } else if (!motionAllowed) {
-        document.getElementById('status').textContent = 'Permission denied.';
     } else {
-        document.getElementById('status').textContent = 'Orientation permission denied.';
+        document.getElementById('status').textContent = 'DeviceMotion not supported.';
     }
 }
 
