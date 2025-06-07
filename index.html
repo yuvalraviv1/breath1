@@ -53,12 +53,17 @@ body { font-family: Arial, sans-serif; margin: 40px; }
             <option value="4">4x</option>
         </select>
     </label>
+    <br>
+    <label>
+        <input type="checkbox" id="center-checkbox"> Center on average
+    </label>
 </div>
 <script>
 let SAMPLE_INTERVAL = 5; // milliseconds
 let HISTORY_LENGTH = 50;
 let AVERAGE_INTERVAL = 2; // seconds
 let SCALE_FACTOR = 1;
+let CENTER_ON_AVERAGE = false;
 let debugCanvas, debugCtx;
 const samples = [];
 let lastSampleTime = 0;
@@ -68,6 +73,8 @@ let lastAveragePoint = null;
 
 const axisSelect = document.getElementById('axis-select');
 const scaleSelect = document.getElementById('scale-factor');
+const centerCheckbox = document.getElementById('center-checkbox');
+CENTER_ON_AVERAGE = centerCheckbox.checked;
 
 axisSelect.addEventListener('change', e => {
     const val = e.target.value;
@@ -87,6 +94,11 @@ scaleSelect.addEventListener('change', e => {
         SCALE_FACTOR = val;
         drawTrail();
     }
+});
+
+centerCheckbox.addEventListener('change', e => {
+    CENTER_ON_AVERAGE = e.target.checked;
+    drawTrail();
 });
 
 const sampleInput = document.getElementById('sample-interval');
@@ -137,10 +149,15 @@ function drawTrail() {
     const w = debugCanvas.width;
     const h = debugCanvas.height;
     debugCtx.clearRect(0, 0, w, h);
+    let offsetX = 0, offsetY = 0;
+    if (CENTER_ON_AVERAGE && lastAveragePoint) {
+        offsetX = lastAveragePoint[axisMapping.xAxis];
+        offsetY = lastAveragePoint[axisMapping.yAxis];
+    }
     for (let i = samples.length - 1; i >= 0; i--) {
         const sample = samples[i];
-        const xVal = sample[axisMapping.xAxis];
-        const yVal = sample[axisMapping.yAxis];
+        const xVal = sample[axisMapping.xAxis] - offsetX;
+        const yVal = sample[axisMapping.yAxis] - offsetY;
         const colorVal = sample[axisMapping.colorAxis];
         const px = (xVal * SCALE_FACTOR + 10) / 20 * w;
         const py = (yVal * SCALE_FACTOR + 10) / 20 * h;
@@ -153,8 +170,8 @@ function drawTrail() {
     }
     debugCtx.globalAlpha = 1;
     if (lastAveragePoint) {
-        const xVal = lastAveragePoint[axisMapping.xAxis];
-        const yVal = lastAveragePoint[axisMapping.yAxis];
+        let xVal = lastAveragePoint[axisMapping.xAxis] - offsetX;
+        let yVal = lastAveragePoint[axisMapping.yAxis] - offsetY;
         const px = (xVal * SCALE_FACTOR + 10) / 20 * w;
         const py = (yVal * SCALE_FACTOR + 10) / 20 * h;
         debugCtx.strokeStyle = 'red';
