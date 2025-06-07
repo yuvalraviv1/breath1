@@ -8,6 +8,7 @@
 body { font-family: Arial, sans-serif; margin: 40px; }
 #values { margin-top: 20px; font-size: 1.2em; }
 #scene-container { width: 100%; height: 400px; }
+#debug-canvas { display: block; margin-top: 20px; background: #eee; border: 1px solid #ccc; }
 </style>
 </head>
 <body>
@@ -19,6 +20,7 @@ Y: <span id="y">0</span><br>
 Z: <span id="z">0</span>
 </div>
 <div id="scene-container"></div>
+<canvas id="debug-canvas" width="300" height="300"></canvas>
 <script src="https://unpkg.com/three@0.152.0/build/three.min.js"></script>
 <script>
 const SAMPLE_INTERVAL = 250; // milliseconds
@@ -28,6 +30,33 @@ let scene, camera, renderer;
 const spheres = [];
 const samples = [];
 let lastSampleTime = 0;
+let debugCanvas, debugCtx;
+
+function initDebugCanvas() {
+    debugCanvas = document.getElementById('debug-canvas');
+    if (debugCanvas) {
+        debugCtx = debugCanvas.getContext('2d');
+    }
+}
+
+function zToColor(z) {
+    const clamped = Math.max(-10, Math.min(10, z));
+    const hue = ((10 - clamped) / 20) * 240; // blue to red
+    return `hsl(${hue}, 100%, 50%)`;
+}
+
+function drawDot(x, y, z) {
+    if (!debugCtx) return;
+    const w = debugCanvas.width;
+    const h = debugCanvas.height;
+    debugCtx.clearRect(0, 0, w, h);
+    const px = (x + 10) / 20 * w;
+    const py = (y + 10) / 20 * h;
+    debugCtx.fillStyle = zToColor(z);
+    debugCtx.beginPath();
+    debugCtx.arc(px, h - py, 10, 0, Math.PI * 2);
+    debugCtx.fill();
+}
 
 function initScene() {
     const container = document.getElementById('scene-container');
@@ -79,6 +108,7 @@ function updatePoints() {
 }
 function setupMotion() {
     initScene();
+    initDebugCanvas();
     window.addEventListener('devicemotion', event => {
         const { x = 0, y = 0, z = 0 } = event.accelerationIncludingGravity || {};
         document.getElementById('x').textContent = x && x.toFixed ? x.toFixed(2) : '0';
@@ -94,6 +124,7 @@ function setupMotion() {
             }
             updatePoints();
         }
+        drawDot(x, y, z);
     });
     document.getElementById('status').textContent = 'Reading accelerometer...';
 }
