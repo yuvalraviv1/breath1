@@ -37,28 +37,29 @@ body { font-family: Arial, sans-serif; margin: 40px; }
     <label>Display axes:
         <select id="axis-select">
             <option value="xy">X-Y (Z as color)</option>
-            <option value="xz">X-Z (Y as color)</option>
+            <option value="xz" selected>X-Z (Y as color)</option>
             <option value="yz">Y-Z (X as color)</option>
         </select>
     </label>
     <br>
     <label>Scale:
         <select id="scale-factor">
-            <option value="1">1x</option>
-            <option value="2" selected>2x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
             <option value="4">4x</option>
         </select>
     </label>
 </div>
+<button id="about-button" onclick="window.location.href='about.html'">About</button>
 <script>
 let SAMPLE_INTERVAL = 5; // milliseconds
 let HISTORY_LENGTH = 50;
 let AVERAGE_INTERVAL = 2; // seconds
-let SCALE_FACTOR = 2;
+let SCALE_FACTOR = 1;
 let debugCanvas, debugCtx;
 const samples = [];
 let lastSampleTime = 0;
-let axisMapping = { xAxis: 'x', yAxis: 'y', colorAxis: 'z' };
+let axisMapping = { xAxis: 'x', yAxis: 'z', colorAxis: 'y' };
 let avgAccum = { x: 0, y: 0, z: 0, count: 0, startTime: Date.now() };
 let lastAveragePoint = null;
 
