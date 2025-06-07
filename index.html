@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Breath Monitor Prototype</title>
+<title>Breath Control</title>
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -13,7 +13,8 @@ body { font-family: Arial, sans-serif; margin: 40px; }
 </style>
 </head>
 <body>
-<h1>Breath Monitor Prototype</h1>
+<h1>Breath Control</h1>
+<canvas id="debug-canvas" width="300" height="300"></canvas>
 <p id="status">Awaiting permission for motion sensors...</p>
 <div id="values">
     X: <span id="x">0</span>
@@ -40,12 +41,20 @@ body { font-family: Arial, sans-serif; margin: 40px; }
             <option value="yz">Y-Z (X as color)</option>
         </select>
     </label>
+    <br>
+    <label>Scale:
+        <select id="scale-factor">
+            <option value="1">1x</option>
+            <option value="2" selected>2x</option>
+            <option value="4">4x</option>
+        </select>
+    </label>
 </div>
-<canvas id="debug-canvas" width="300" height="300"></canvas>
 <script>
 let SAMPLE_INTERVAL = 5; // milliseconds
 let HISTORY_LENGTH = 50;
 let AVERAGE_INTERVAL = 2; // seconds
+let SCALE_FACTOR = 2;
 let debugCanvas, debugCtx;
 const samples = [];
 let lastSampleTime = 0;
@@ -54,6 +63,7 @@ let avgAccum = { x: 0, y: 0, z: 0, count: 0, startTime: Date.now() };
 let lastAveragePoint = null;
 
 const axisSelect = document.getElementById('axis-select');
+const scaleSelect = document.getElementById('scale-factor');
 
 axisSelect.addEventListener('change', e => {
     const val = e.target.value;
@@ -67,9 +77,18 @@ axisSelect.addEventListener('change', e => {
     drawTrail();
 });
 
+scaleSelect.addEventListener('change', e => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val) && val > 0) {
+        SCALE_FACTOR = val;
+        drawTrail();
+    }
+});
+
 const sampleInput = document.getElementById('sample-interval');
 const historyInput = document.getElementById('history-length');
 const avgIntervalInput = document.getElementById('average-interval');
+SCALE_FACTOR = parseFloat(scaleSelect.value) || SCALE_FACTOR;
 SAMPLE_INTERVAL = parseInt(sampleInput.value, 10) || SAMPLE_INTERVAL;
 HISTORY_LENGTH = parseInt(historyInput.value, 10) || HISTORY_LENGTH;
 AVERAGE_INTERVAL = parseFloat(avgIntervalInput.value) || AVERAGE_INTERVAL;
@@ -119,8 +138,8 @@ function drawTrail() {
         const xVal = sample[axisMapping.xAxis];
         const yVal = sample[axisMapping.yAxis];
         const colorVal = sample[axisMapping.colorAxis];
-        const px = (xVal + 10) / 20 * w;
-        const py = (yVal + 10) / 20 * h;
+        const px = (xVal * SCALE_FACTOR + 10) / 20 * w;
+        const py = (yVal * SCALE_FACTOR + 10) / 20 * h;
         const alpha = (i + 1) / HISTORY_LENGTH;
         debugCtx.globalAlpha = alpha;
         debugCtx.fillStyle = axisValueToColor(colorVal);
@@ -132,8 +151,8 @@ function drawTrail() {
     if (lastAveragePoint) {
         const xVal = lastAveragePoint[axisMapping.xAxis];
         const yVal = lastAveragePoint[axisMapping.yAxis];
-        const px = (xVal + 10) / 20 * w;
-        const py = (yVal + 10) / 20 * h;
+        const px = (xVal * SCALE_FACTOR + 10) / 20 * w;
+        const py = (yVal * SCALE_FACTOR + 10) / 20 * h;
         debugCtx.strokeStyle = 'red';
         debugCtx.lineWidth = 2;
         debugCtx.beginPath();
