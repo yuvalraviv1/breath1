@@ -18,13 +18,43 @@ X: <span id="x">0</span><br>
 Y: <span id="y">0</span><br>
 Z: <span id="z">0</span>
 </div>
+<div id="settings" style="margin-top:20px;">
+    <label>Sample interval (ms):
+        <input type="number" id="sample-interval" value="250" min="10" step="10">
+    </label>
+    <br>
+    <label>Samples before fading:
+        <input type="number" id="history-length" value="20" min="1" step="1">
+    </label>
+</div>
 <canvas id="debug-canvas" width="300" height="300"></canvas>
 <script>
-const SAMPLE_INTERVAL = 250; // milliseconds
-const HISTORY_LENGTH = 20;
+let SAMPLE_INTERVAL = 250; // milliseconds
+let HISTORY_LENGTH = 20;
 let debugCanvas, debugCtx;
 const samples = [];
 let lastSampleTime = 0;
+
+const sampleInput = document.getElementById('sample-interval');
+const historyInput = document.getElementById('history-length');
+SAMPLE_INTERVAL = parseInt(sampleInput.value, 10) || SAMPLE_INTERVAL;
+HISTORY_LENGTH = parseInt(historyInput.value, 10) || HISTORY_LENGTH;
+sampleInput.addEventListener('input', e => {
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val) && val > 0) {
+        SAMPLE_INTERVAL = val;
+    }
+});
+historyInput.addEventListener('input', e => {
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val) && val > 0) {
+        HISTORY_LENGTH = val;
+        if (samples.length > HISTORY_LENGTH) {
+            samples.length = HISTORY_LENGTH;
+        }
+        drawTrail();
+    }
+});
 
 function initDebugCanvas() {
     debugCanvas = document.getElementById('debug-canvas');
