@@ -4,4 +4,4 @@ Create a JavaScript single HTML file. It reads iPhone's accelerometer data and d
 
 ### Usage
 
-Open `index.html` on your mobile device. On iOS (including Edge for iPhone), tap the page once to grant motion sensor access. After tapping, the accelerometer values will appear on screen along with a 2D fading trail showing the last 20 samples.
+Open `index.html` on your mobile device. On iOS (including Edge for iPhone), tap the page once to grant motion sensor access. Use the on‑screen controls to adjust the sample interval and the number of samples shown before fading. After tapping, the accelerometer values will appear on screen along with a 2D fading trail reflecting your chosen settings.
