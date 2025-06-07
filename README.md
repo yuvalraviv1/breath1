@@ -1,6 +1,6 @@
 # breath1
 
-Create a JavaScript single HTML file. It reads iPhone's accelerometer data and displays it on the page. The final goal is to monitor breathing patterns by placing the phone on the stomach or the chest.
+Create a JavaScript single HTML file. It reads the device's accelerometer data and displays it on the page. The final goal is to monitor breathing patterns by placing the phone on the stomach or the chest. The app now also listens to `DeviceOrientationEvent` so it can determine where gravity points and subtract that component from the accelerometer values before plotting them.
 
 ### Usage
 
