@@ -28,6 +28,14 @@ Z: <span id="z">0</span>
     <label>Samples before fading:
         <input type="number" id="history-length" value="50" min="1" step="1">
     </label>
+    <br>
+    <label>Display axes:
+        <select id="axis-select">
+            <option value="xy">X-Y (Z as color)</option>
+            <option value="xz">X-Z (Y as color)</option>
+            <option value="yz">Y-Z (X as color)</option>
+        </select>
+    </label>
 </div>
 <canvas id="debug-canvas" width="300" height="300"></canvas>
 <script>
@@ -36,6 +44,21 @@ let HISTORY_LENGTH = 50;
 let debugCanvas, debugCtx;
 const samples = [];
 let lastSampleTime = 0;
+let axisMapping = { xAxis: 'x', yAxis: 'y', colorAxis: 'z' };
+
+const axisSelect = document.getElementById('axis-select');
+
+axisSelect.addEventListener('change', e => {
+    const val = e.target.value;
+    if (val === 'xy') {
+        axisMapping = { xAxis: 'x', yAxis: 'y', colorAxis: 'z' };
+    } else if (val === 'xz') {
+        axisMapping = { xAxis: 'x', yAxis: 'z', colorAxis: 'y' };
+    } else if (val === 'yz') {
+        axisMapping = { xAxis: 'y', yAxis: 'z', colorAxis: 'x' };
+    }
+    drawTrail();
+});
 
 const sampleInput = document.getElementById('sample-interval');
 const historyInput = document.getElementById('history-length');
@@ -65,8 +88,8 @@ function initDebugCanvas() {
     }
 }
 
-function zToColor(z) {
-    const clamped = Math.max(-10, Math.min(10, z));
+function axisValueToColor(val) {
+    const clamped = Math.max(-10, Math.min(10, val));
     const hue = ((10 - clamped) / 20) * 240; // blue to red
     return `hsl(${hue}, 100%, 50%)`;
 }
@@ -77,12 +100,15 @@ function drawTrail() {
     const h = debugCanvas.height;
     debugCtx.clearRect(0, 0, w, h);
     for (let i = samples.length - 1; i >= 0; i--) {
-        const { x, y, z } = samples[i];
-        const px = (x + 10) / 20 * w;
-        const py = (y + 10) / 20 * h;
+        const sample = samples[i];
+        const xVal = sample[axisMapping.xAxis];
+        const yVal = sample[axisMapping.yAxis];
+        const colorVal = sample[axisMapping.colorAxis];
+        const px = (xVal + 10) / 20 * w;
+        const py = (yVal + 10) / 20 * h;
         const alpha = (i + 1) / HISTORY_LENGTH;
         debugCtx.globalAlpha = alpha;
-        debugCtx.fillStyle = zToColor(z);
+        debugCtx.fillStyle = axisValueToColor(colorVal);
         debugCtx.beginPath();
         debugCtx.arc(px, h - py, 10, 0, Math.PI * 2);
         debugCtx.fill();
