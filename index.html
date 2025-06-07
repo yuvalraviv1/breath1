@@ -44,8 +44,10 @@ body { font-family: Arial, sans-serif; margin: 40px; }
     <br>
     <label>Scale:
         <select id="scale-factor">
+ 
             <option value="1">1x</option>
             <option value="2" selected>2x</option>
+
             <option value="4">4x</option>
         </select>
     </label>
@@ -54,7 +56,8 @@ body { font-family: Arial, sans-serif; margin: 40px; }
 let SAMPLE_INTERVAL = 5; // milliseconds
 let HISTORY_LENGTH = 50;
 let AVERAGE_INTERVAL = 2; // seconds
-let SCALE_FACTOR = 2;
+let SCALE_FACTOR = 1;
+
 let debugCanvas, debugCtx;
 const samples = [];
 let lastSampleTime = 0;
