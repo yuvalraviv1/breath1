@@ -16,9 +16,9 @@ body { font-family: Arial, sans-serif; margin: 40px; }
 <h1>Breath Monitor Prototype</h1>
 <p id="status">Awaiting permission for motion sensors...</p>
 <div id="values">
-X: <span id="x">0</span><br>
-Y: <span id="y">0</span><br>
-Z: <span id="z">0</span>
+    X: <span id="x">0</span>
+    Y: <span id="y">0</span>
+    Z: <span id="z">0</span>
 </div>
 <div id="settings" style="margin-top:20px;">
     <label>Sample interval (ms):
@@ -27,6 +27,10 @@ Z: <span id="z">0</span>
     <br>
     <label>Samples before fading:
         <input type="number" id="history-length" value="50" min="1" step="1">
+    </label>
+    <br>
+    <label>Average interval (s):
+        <input type="number" id="average-interval" value="2" min="0.1" step="0.1">
     </label>
     <br>
     <label>Display axes:
@@ -41,10 +45,13 @@ Z: <span id="z">0</span>
 <script>
 let SAMPLE_INTERVAL = 5; // milliseconds
 let HISTORY_LENGTH = 50;
+let AVERAGE_INTERVAL = 2; // seconds
 let debugCanvas, debugCtx;
 const samples = [];
 let lastSampleTime = 0;
 let axisMapping = { xAxis: 'x', yAxis: 'y', colorAxis: 'z' };
+let avgAccum = { x: 0, y: 0, z: 0, count: 0, startTime: Date.now() };
+let lastAveragePoint = null;
 
 const axisSelect = document.getElementById('axis-select');
 
@@ -62,8 +69,10 @@ axisSelect.addEventListener('change', e => {
 
 const sampleInput = document.getElementById('sample-interval');
 const historyInput = document.getElementById('history-length');
+const avgIntervalInput = document.getElementById('average-interval');
 SAMPLE_INTERVAL = parseInt(sampleInput.value, 10) || SAMPLE_INTERVAL;
 HISTORY_LENGTH = parseInt(historyInput.value, 10) || HISTORY_LENGTH;
+AVERAGE_INTERVAL = parseFloat(avgIntervalInput.value) || AVERAGE_INTERVAL;
 sampleInput.addEventListener('input', e => {
     const val = parseInt(e.target.value, 10);
     if (!isNaN(val) && val > 0) {
@@ -78,6 +87,12 @@ historyInput.addEventListener('input', e => {
             samples.length = HISTORY_LENGTH;
         }
         drawTrail();
+    }
+});
+avgIntervalInput.addEventListener('input', e => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val) && val > 0) {
+        AVERAGE_INTERVAL = val;
     }
 });
 
@@ -114,6 +129,20 @@ function drawTrail() {
         debugCtx.fill();
     }
     debugCtx.globalAlpha = 1;
+    if (lastAveragePoint) {
+        const xVal = lastAveragePoint[axisMapping.xAxis];
+        const yVal = lastAveragePoint[axisMapping.yAxis];
+        const px = (xVal + 10) / 20 * w;
+        const py = (yVal + 10) / 20 * h;
+        debugCtx.strokeStyle = 'red';
+        debugCtx.lineWidth = 2;
+        debugCtx.beginPath();
+        debugCtx.moveTo(px - 5, h - py - 5);
+        debugCtx.lineTo(px + 5, h - py + 5);
+        debugCtx.moveTo(px + 5, h - py - 5);
+        debugCtx.lineTo(px - 5, h - py + 5);
+        debugCtx.stroke();
+    }
 }
 
 function setupMotion() {
@@ -130,6 +159,24 @@ function setupMotion() {
             samples.unshift({ x, y, z });
             if (samples.length > HISTORY_LENGTH) {
                 samples.pop();
+            }
+            avgAccum.x += x;
+            avgAccum.y += y;
+            avgAccum.z += z;
+            avgAccum.count++;
+            if (now - avgAccum.startTime >= AVERAGE_INTERVAL * 1000) {
+                if (avgAccum.count > 0) {
+                    lastAveragePoint = {
+                        x: avgAccum.x / avgAccum.count,
+                        y: avgAccum.y / avgAccum.count,
+                        z: avgAccum.z / avgAccum.count
+                    };
+                } else {
+                    lastAveragePoint = null;
+                }
+                avgAccum.x = avgAccum.y = avgAccum.z = 0;
+                avgAccum.count = 0;
+                avgAccum.startTime = now;
             }
         }
         drawTrail();
