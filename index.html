@@ -25,6 +25,7 @@ const SAMPLE_INTERVAL = 250; // milliseconds
 const HISTORY_LENGTH = 20;
 const POSITION_SCALE = 0.1;
 
+
 let scene, camera, renderer;
 const spheres = [];
 const samples = [];
@@ -38,7 +39,6 @@ function initScene() {
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setClearColor(0xeeeeee);
     container.appendChild(renderer.domElement);
 
     for (let i = 0; i < HISTORY_LENGTH; i++) {
