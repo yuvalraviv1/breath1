@@ -25,6 +25,8 @@ Z: <span id="z">0</span>
 <script>
 const SAMPLE_INTERVAL = 250; // milliseconds
 const HISTORY_LENGTH = 20;
+const POSITION_SCALE = 0.1;
+
 
 let scene, camera, renderer;
 const spheres = [];
@@ -96,7 +98,7 @@ function updatePoints() {
         const sphere = spheres[i];
         if (i < samples.length) {
             const { x, y, z } = samples[i];
-            sphere.position.set(x, y, z);
+            sphere.position.set(x * POSITION_SCALE, y * POSITION_SCALE, z * POSITION_SCALE);
             const t = i / (HISTORY_LENGTH - 1);
             const gray = Math.floor(255 * t);
             sphere.material.color.setRGB(gray / 255, gray / 255, gray / 255);
