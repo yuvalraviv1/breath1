@@ -7,13 +7,17 @@
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
+#header { display:flex; align-items:center; justify-content:space-between; }
 body { font-family: Arial, sans-serif; margin: 40px; }
 #values { margin-top: 20px; font-size: 1.2em; }
 #debug-canvas { display: block; margin-top: 20px; background: #eee; border: 1px solid #ccc; }
 </style>
 </head>
 <body>
-<h1>Breath Control</h1>
+<div id="header">
+    <h1>Breath Control</h1>
+    <button id="about-button" onclick="window.location.href='about.html'">About</button>
+</div>
 <canvas id="debug-canvas" width="300" height="300"></canvas>
 <p id="status">Awaiting permission for motion sensors...</p>
 <div id="values">
@@ -50,7 +54,6 @@ body { font-family: Arial, sans-serif; margin: 40px; }
         </select>
     </label>
 </div>
-<button id="about-button" onclick="window.location.href='about.html'">About</button>
 <script>
 let SAMPLE_INTERVAL = 5; // milliseconds
 let HISTORY_LENGTH = 50;
