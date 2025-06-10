@@ -25,6 +25,8 @@ body { font-family: Arial, sans-serif; margin: 40px; }
     Y: <span id="y">0</span>
     Z: <span id="z">0</span>
 </div>
+<button id="gps-button">Get Location</button>
+<p id="gps-coordinates"></p>
 <div id="settings" style="margin-top:20px;">
     <label>Sample interval (ms):
         <input type="number" id="sample-interval" value="5" min="1" step="1">
@@ -245,6 +247,18 @@ function initMotionAccess() {
 }
 
 document.body.addEventListener('touchstart', initMotionAccess, { once: true });
+document.getElementById("gps-button").addEventListener("click", () => {
+    const output = document.getElementById("gps-coordinates");
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            output.textContent = `Lat: ${pos.coords.latitude.toFixed(5)}, Lon: ${pos.coords.longitude.toFixed(5)}`;
+        }, err => {
+            output.textContent = "Error: " + err.message;
+        });
+    } else {
+        output.textContent = "Geolocation not supported.";
+    }
+});
 document.body.addEventListener('click', initMotionAccess, { once: true });
 document.getElementById('status').textContent = 'Tap anywhere to allow motion access.';
 </script>

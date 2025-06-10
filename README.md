@@ -8,3 +8,4 @@ Open `index.html` on your mobile device. On iOS (including Edge for iPhone), tap
 Use the axis selector to choose whether the trail plots X–Y, X–Z or Y–Z with the remaining axis mapped to color.
 Every few seconds, based on the averaging interval, the app shows a red cross at the averaged location for that period.
 Enable "Center on average" to keep that red cross in the middle of the display and shift the trail accordingly.
+A "Get Location" button now retrieves and displays your current GPS coordinates.
